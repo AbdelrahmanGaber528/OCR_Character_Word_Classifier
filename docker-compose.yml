@@ -1,0 +1,35 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./static:/app/static
+    depends_on:
+      - character_service
+      - word_service
+
+  character_service:
+    build: ./classifier
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./model:/app/model
+    environment:
+      - MODEL_PATH=/app/model/ocr_model.pth
+
+  word_service:
+    build: ./classifier
+    command: uvicorn main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./model:/app/model
+    environment:
+      - MODEL_PATH=/app/model/ocr_model.pth
+
+  logger:
+    build: ./logger
+    ports:
+      - "8003:8003"

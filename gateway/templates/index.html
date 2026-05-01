@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI OCR System</title>
+    <!-- Use Tailwind for layout + your own style.css for customization -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                Neural OCR Engine
+            </h1>
+            <p class="text-slate-500 text-sm mt-2 font-medium">Applied Machine Learning Service</p>
+        </header>
+
+        <div class="space-y-4">
+            <!-- Upload Box -->
+            <label for="fileInput" class="group relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-700 rounded-2xl cursor-pointer hover:border-cyan-500 hover:bg-slate-800/50 transition-all">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <p class="mb-2 text-sm text-slate-400 group-hover:text-cyan-400">Click to upload or drag image</p>
+                    <p class="text-xs text-slate-600 italic">Supports JPG, PNG (28x28 optimized)</p>
+                </div>
+                <input id="fileInput" type="file" class="hidden" accept="image/*" />
+            </label>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="predict('/predict/character')" class="py-3 px-4 bg-slate-800 hover:bg-cyan-600 rounded-xl font-bold transition-all border border-slate-700">Predict Character</button>
+                <button onclick="predict('/predict/word')" class="py-3 px-4 bg-slate-800 hover:bg-blue-600 rounded-xl font-bold transition-all border border-slate-700">Predict Word</button>
+            </div>
+
+            <!-- Result Display -->
+            <div id="resultBox" class="hidden animate-pulse mt-6 p-6 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-center">
+                <p class="text-xs text-cyan-500 uppercase font-bold tracking-widest mb-1">Inference Result</p>
+                <h2 id="resultText" class="text-5xl font-black text-white">?</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function predict(endpoint) {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) return alert("Please select an image first!");
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const box = document.getElementById('resultBox');
+            const text = document.getElementById('resultText');
+            
+            box.classList.remove('hidden');
+            text.innerText = "Processing...";
+
+            try {
+                const res = await fetch(endpoint, { method: 'POST', body: formData });
+                const data = await res.json();
+                text.innerText = data.prediction || "Error";
+            } catch (e) {
+                text.innerText = "Offline";
+            }
+        }
+    </script>
+</body>
+</html>
