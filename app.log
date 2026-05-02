@@ -1,11 +1,64 @@
-[2026-05-02T16:28:17.554993] [gateway] [INFO] Proxying character request: letter_W_handwritten.jpeg
-[2026-05-02T16:28:18.327248] [character-service] [INFO] Predicted character: W (conf: 0.8629)
-[2026-05-02T16:28:18.329883] [gateway] [INFO] Character prediction success for letter_W_handwritten.jpeg
-[2026-05-02T16:36:53.750914] [character-service] [INFO] Loading model from /home/abdelrahman/hdd/Git/AML/OCR/model/ocr_model.pth ...
-[2026-05-02T16:36:53.787935] [character-service] [INFO] Ready — MobileNetV2 | 26 classes | cpu
-[2026-05-02T16:37:04.988656] [word-service] [INFO] Loading EasyOCR reader ...
-[2026-05-02T16:37:05.314329] [word-service] [INFO] EasyOCR ready | gpu=True
-[2026-05-02T16:37:44.599085] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
-[2026-05-02T16:37:58.693936] [gateway] [INFO] Proxying word request: mazen_word.jpeg
-[2026-05-02T16:37:59.534404] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
-[2026-05-02T16:37:59.535007] [gateway] [INFO] Word prediction success for mazen_word.jpeg
+INFO:     Started server process [27473]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+[2026-05-02T17:20:17.509364] [character-service] [INFO] Ready — MobileNetV2 | 26 classes | cpu
+INFO:     127.0.0.1:47702 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:20:16.918645] [character-service] [INFO] Loading model from /home/abdelrahman/hdd/Git/AML/OCR/model/ocr_model.pth ...
+INFO:     127.0.0.1:47716 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:20:29.447743] [word-service] [INFO] Loading EasyOCR reader ...
+INFO:     127.0.0.1:34672 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:20:29.550005] [word-service] [INFO] EasyOCR ready | gpu=True
+INFO:     127.0.0.1:34680 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:20:36.703633] [character-service] [INFO] Predicted character: W (conf: 0.8629)
+INFO:     127.0.0.1:55004 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:21:01.214189] [gateway] [INFO] Proxying word request: mazen_word.jpeg
+INFO:     127.0.0.1:58428 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:21:03.550186] [gateway] [INFO] Word prediction success for mazen_word.jpeg
+INFO:     127.0.0.1:58434 - "POST /log HTTP/1.1" 200 OK
+[2026-05-02T17:21:03.545949] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
+INFO:     127.0.0.1:58448 - "POST /log HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27473]
+-05-02T17:20:29.447743] [word-service] [INFO] Loading EasyOCR reader ...
+[2026-05-02T17:20:29.550005] [word-service] [INFO] EasyOCR ready | gpu=True
+INFO | word | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO | word | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO | character | Predicted character: W (conf: 0.8629)
+INFO:     127.0.0.1:42896 - "POST /predict-character HTTP/1.1" 200 OK
+[2026-05-02T17:20:36.703633] [character-service] [INFO] Predicted character: W (conf: 0.8629)
+INFO | character | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:57914 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57914 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57926 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57926 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38622 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38622 - "GET / HTTP/1.1" 200 OK
+INFO | gateway | Proxying word request: mazen_word.jpeg
+[2026-05-02T17:21:01.214189] [gateway] [INFO] Proxying word request: mazen_word.jpeg
+INFO | gateway | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO | word | Predicted: 'MAZEN' | conf=1.0 | chars=5
+INFO:     127.0.0.1:40400 - "POST /predict-word HTTP/1.1" 200 OK
+INFO | gateway | HTTP Request: POST http://localhost:8002/predict-word "HTTP/1.1 200 OK"
+INFO | gateway | Word prediction success for mazen_word.jpeg
+INFO:     127.0.0.1:38638 - "POST /predict/word HTTP/1.1" 200 OK
+[2026-05-02T17:21:03.550186] [gateway] [INFO] Word prediction success for mazen_word.jpeg
+[2026-05-02T17:21:03.545949] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
+INFO | gateway | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO | word | HTTP Request: POST http://localhost:8003/log "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:54590 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54590 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Shutting down
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27503]
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27595]
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27539]

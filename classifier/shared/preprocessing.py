@@ -5,12 +5,13 @@ from torchvision import transforms
 import numpy as np
 
 
-_CNN_TRANSFORM = transforms.Compose([
-    transforms.Grayscale(1),
-    transforms.Resize((28, 28)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,)),
-])
+# _CNN_TRANSFORM = transforms.Compose([
+#     transforms.Grayscale(1),
+#     transforms.Resize((28, 28)),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.1307,), (0.3081,)),
+# ])
+
 
 
 # we use the same transform for MobileNetV2, but with 3 channels (grayscale → RGB)
