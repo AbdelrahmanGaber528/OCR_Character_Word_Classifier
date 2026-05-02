@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s | character | %(me
 remote_log = RemoteLogger("character-service")
 
 
+
 # on startup
 
 ml: dict = {}

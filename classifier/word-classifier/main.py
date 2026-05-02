@@ -20,9 +20,10 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s | word | %(message
 log        = logging.getLogger(__name__)
 remote_log = RemoteLogger("word-service")
 
+
+
+
 ml: dict = {}
-
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,7 +38,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Word Service", lifespan=lifespan)
 
 
-# ── Schemas ─────────────
+
+
 class CharResult(BaseModel):
     position: int
     letter: str
@@ -98,6 +100,8 @@ def _run(image_bytes: bytes) -> WordResponse:
 
 
 
+
+# endpoints
 @app.get("/health")
 def health():
     return {"status": "ok", "model": "EasyOCR", "device": DEVICE}
