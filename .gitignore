@@ -1,2 +1,3 @@
 .venv/
 tested_photos/
+*.log
