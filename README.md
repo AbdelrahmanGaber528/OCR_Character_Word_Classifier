@@ -60,6 +60,15 @@ docker-compose up --build
 ```
 The Gateway will be available at `http://localhost:8000`.
 
+## API Documentation
+
+Each service provides interactive Swagger UI (OpenAPI) documentation for exploring and testing endpoints:
+
+*   **Gateway:** [http://localhost:8000/docs](http://localhost:8000/docs)
+*   **Character Service:** [http://localhost:8001/docs](http://localhost:8001/docs)
+*   **Word Service:** [http://localhost:8002/docs](http://localhost:8002/docs)
+*   **Logger Service:** [http://localhost:8003/docs](http://localhost:8003/docs)
+
 ## API Usage
 
 ### Gateway Endpoints
