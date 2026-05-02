@@ -1,13 +1,13 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY logger/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY logger/ ./logger/
 
-# Logger runs on 8002
-EXPOSE 8002
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
+EXPOSE 8003
+CMD ["uvicorn", "logger.main:app", "--host", "0.0.0.0", "--port", "8003"]

@@ -24,8 +24,13 @@
                     <p class="mb-2 text-sm text-slate-400 group-hover:text-cyan-400">Click to upload or drag image</p>
                     <p class="text-xs text-slate-600 italic">Supports JPG, PNG (28x28 optimized)</p>
                 </div>
-                <input id="fileInput" type="file" class="hidden" accept="image/*" />
+                <input id="fileInput" type="file" class="hidden" accept="image/*" onchange="previewImage(event)" />
             </label>
+
+            <!-- Image Preview -->
+            <div id="previewContainer" class="hidden flex justify-center mt-4">
+                <img id="imagePreview" src="#" alt="Preview" class="max-h-48 rounded-lg border border-slate-700 shadow-lg" />
+            </div>
 
             <!-- Action Buttons -->
             <div class="grid grid-cols-2 gap-4">
@@ -42,6 +47,20 @@
     </div>
 
     <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const container = document.getElementById('previewContainer');
+                    preview.src = e.target.result;
+                    container.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
         async function predict(endpoint) {
             const fileInput = document.getElementById('fileInput');
             if (!fileInput.files[0]) return alert("Please select an image first!");
@@ -58,7 +77,15 @@
             try {
                 const res = await fetch(endpoint, { method: 'POST', body: formData });
                 const data = await res.json();
-                text.innerText = data.prediction || "Error";
+                
+                if (data.predicted_letter) {
+                    text.innerText = data.predicted_letter;
+                } else if (data.predicted_word) {
+                    text.innerText = data.predicted_word;
+                } else {
+                    text.innerText = "Error";
+                    console.error("Unexpected response:", data);
+                }
             } catch (e) {
                 text.innerText = "Offline";
             }

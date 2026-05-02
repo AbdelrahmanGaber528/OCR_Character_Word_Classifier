@@ -1,35 +1,50 @@
 services:
   gateway:
-    build: ./gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./static:/app/static
+      - ./gateway/static:/app/static
     depends_on:
       - character_service
       - word_service
+      - logger
+    mem_limit: 200m
 
   character_service:
-    build: ./classifier
-    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    build:
+      context: .
+      dockerfile: classifier/character-classifier/Dockerfile
     ports:
       - "8001:8001"
     volumes:
       - ./model:/app/model
     environment:
       - MODEL_PATH=/app/model/ocr_model.pth
+    depends_on:
+      - logger
+    mem_limit: 1GB
 
   word_service:
-    build: ./classifier
-    command: uvicorn main:app --host 0.0.0.0 --port 8002
+    build:
+      context: .
+      dockerfile: classifier/word-classifier/Dockerfile
     ports:
       - "8002:8002"
     volumes:
       - ./model:/app/model
     environment:
       - MODEL_PATH=/app/model/ocr_model.pth
+    depends_on:
+      - logger
+    mem_limit: 1GB
 
   logger:
-    build: ./logger
+    build:
+      context: .
+      dockerfile: logger/Dockerfile
     ports:
       - "8003:8003"
+    mem_limit: 100m

@@ -1,10 +1,7 @@
-"""
-shared/models.py
-OCR model definitions + single loader used by both services.
-"""
 import torch
 import torch.nn as nn
 from torchvision import models as tv_models
+
 
 
 class OCR_CNN(nn.Module):
@@ -36,6 +33,7 @@ class OCR_CNN(nn.Module):
         return self.head(self.block3(self.block2(self.block1(x))))
 
 
+
 def _build_mobilenetv2(num_classes: int) -> nn.Module:
     model = tv_models.mobilenet_v2(weights=None)
     in_features = model.classifier[1].in_features  # 1280
@@ -47,6 +45,7 @@ def _build_mobilenetv2(num_classes: int) -> nn.Module:
         nn.Linear(512, num_classes),
     )
     return model
+
 
 
 def load_model(checkpoint_path: str, device: str = "cpu"):

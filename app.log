@@ -1,0 +1,3 @@
+[2026-05-02T16:28:17.554993] [gateway] [INFO] Proxying character request: letter_W_handwritten.jpeg
+[2026-05-02T16:28:18.327248] [character-service] [INFO] Predicted character: W (conf: 0.8629)
+[2026-05-02T16:28:18.329883] [gateway] [INFO] Character prediction success for letter_W_handwritten.jpeg
