@@ -43,8 +43,11 @@ def preprocess_image(image_bytes: bytes, model_name: str) -> torch.Tensor:
 
 
 
-## doesn't work - word-service model doesn't work -----------------
-def preprocess_pil(pil_image: PILImage.Image, model_name: str) -> torch.Tensor:
-    """PIL Image → (1, C, H, W) tensor. Used by word service after segmentation."""
-    tf  = _MOBILENET_TRANSFORM if model_name == "MobileNetV2" else _CNN_TRANSFORM
-    return tf(_normalize_background(pil_image)).unsqueeze(0)
+
+
+
+# ## doesn't work - word-service model doesn't work -----------------
+# def preprocess_pil(pil_image: PILImage.Image, model_name: str) -> torch.Tensor:
+#     """PIL Image → (1, C, H, W) tensor. Used by word service after segmentation."""
+#     tf  = _MOBILENET_TRANSFORM if model_name == "MobileNetV2" else _CNN_TRANSFORM
+#     return tf(_normalize_background(pil_image)).unsqueeze(0)

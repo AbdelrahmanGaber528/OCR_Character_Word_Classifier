@@ -1,3 +1,11 @@
 [2026-05-02T16:28:17.554993] [gateway] [INFO] Proxying character request: letter_W_handwritten.jpeg
 [2026-05-02T16:28:18.327248] [character-service] [INFO] Predicted character: W (conf: 0.8629)
 [2026-05-02T16:28:18.329883] [gateway] [INFO] Character prediction success for letter_W_handwritten.jpeg
+[2026-05-02T16:36:53.750914] [character-service] [INFO] Loading model from /home/abdelrahman/hdd/Git/AML/OCR/model/ocr_model.pth ...
+[2026-05-02T16:36:53.787935] [character-service] [INFO] Ready — MobileNetV2 | 26 classes | cpu
+[2026-05-02T16:37:04.988656] [word-service] [INFO] Loading EasyOCR reader ...
+[2026-05-02T16:37:05.314329] [word-service] [INFO] EasyOCR ready | gpu=True
+[2026-05-02T16:37:44.599085] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
+[2026-05-02T16:37:58.693936] [gateway] [INFO] Proxying word request: mazen_word.jpeg
+[2026-05-02T16:37:59.534404] [word-service] [INFO] Predicted: 'MAZEN' | conf=1.0 | chars=5
+[2026-05-02T16:37:59.535007] [gateway] [INFO] Word prediction success for mazen_word.jpeg

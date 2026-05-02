@@ -11,6 +11,10 @@ services:
       - character_service
       - word_service
       - logger
+    environment:
+      - CHAR_URL=http://character_service:8001
+      - WORD_URL=http://word_service:8002
+      - LOGGER_URL=http://logger:8003/log
     mem_limit: 200m
 
   character_service:
