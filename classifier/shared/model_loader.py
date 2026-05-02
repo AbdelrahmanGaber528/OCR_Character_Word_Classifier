@@ -36,7 +36,7 @@ from torchvision import models as tv_models
 
 def _build_mobilenetv2(num_classes: int) -> nn.Module:
     model = tv_models.mobilenet_v2(weights=None)
-    in_features = model.classifier[1].in_features  # 1280
+    in_features = model.classifier[1].in_features
     model.classifier = nn.Sequential(
         nn.Dropout(0.3),
         nn.Linear(in_features, 512),

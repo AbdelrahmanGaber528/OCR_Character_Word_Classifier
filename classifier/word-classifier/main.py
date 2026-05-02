@@ -9,16 +9,15 @@ from PIL import Image as PILImage
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 
-from shared.remote_logger import RemoteLogger
+
 
 
 
 DEVICE     = os.getenv("DEVICE", "cpu")
 USE_GPU    = DEVICE == "cpu"
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s | word | %(message)s")
-log        = logging.getLogger(__name__)
-remote_log = RemoteLogger("word-service")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
+logger     = logging.getLogger("word-service")
 
 
 
@@ -27,10 +26,10 @@ ml: dict = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await remote_log.info("Loading EasyOCR reader ...")
+    logger.info("Loading EasyOCR reader ...")
     reader = easyocr.Reader(["en"], gpu=USE_GPU, verbose=False)
     ml.update(reader=reader)
-    await remote_log.info(f"EasyOCR ready | gpu={USE_GPU}")
+    logger.info(f"EasyOCR ready | gpu={USE_GPU}")
     yield
     ml.clear()
 
@@ -118,11 +117,11 @@ async def predict_word(file: UploadFile = File(...)):
 
     try:
         res = _run(data)
-        await remote_log.info(
+        logger.info(
             f"Predicted: '{res.predicted_word}' | "
             f"conf={res.avg_confidence} | chars={res.num_chars_detected}"
         )
         return res
     except Exception as e:
-        await remote_log.error(f"Inference error: {e}")
+        logger.error(f"Inference error: {e}")
         raise HTTPException(500, str(e))

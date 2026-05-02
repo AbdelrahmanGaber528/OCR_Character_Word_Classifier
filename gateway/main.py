@@ -5,10 +5,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
-from gateway.remote_logger import RemoteLogger
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s | gateway | %(message)s")
-remote_log = RemoteLogger("gateway")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger("gateway")
 
 CHAR_URL = os.getenv("CHAR_URL", "http://character_service:8001")
 WORD_URL = os.getenv("WORD_URL", "http://word_service:8002")
@@ -46,7 +45,7 @@ async def predict_character(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Must be an image file.")
 
-    await remote_log.info(f"Proxying character request: {file.filename}")
+    logger.info(f"Proxying character request: {file.filename}")
     data = await file.read()
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         try:
@@ -56,16 +55,16 @@ async def predict_character(file: UploadFile = File(...)):
             )
             resp.raise_for_status()
             res = resp.json()
-            await remote_log.info(f"Character prediction success for {file.filename}")
+            logger.info(f"Character prediction success for {file.filename}")
             return res
         except httpx.TimeoutException:
-            await remote_log.error(f"Character service timed out for {file.filename}")
+            logger.error(f"Character service timed out for {file.filename}")
             raise HTTPException(504, "Character service timed out.")
         except httpx.HTTPStatusError as e:
-            await remote_log.error(f"Character service error {e.response.status_code} for {file.filename}")
+            logger.error(f"Character service error {e.response.status_code} for {file.filename}")
             raise HTTPException(e.response.status_code, e.response.text)
         except Exception as e:
-            await remote_log.error(f"Character service unreachable: {e}")
+            logger.error(f"Character service unreachable: {e}")
             raise HTTPException(502, f"Character service unreachable: {e}")
 
 
@@ -78,7 +77,7 @@ async def predict_word(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Must be an image file.")
 
-    await remote_log.info(f"Proxying word request: {file.filename}")
+    logger.info(f"Proxying word request: {file.filename}")
     data = await file.read()
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         try:
@@ -88,14 +87,14 @@ async def predict_word(file: UploadFile = File(...)):
             )
             resp.raise_for_status()
             res = resp.json()
-            await remote_log.info(f"Word prediction success for {file.filename}")
+            logger.info(f"Word prediction success for {file.filename}")
             return res
         except httpx.TimeoutException:
-            await remote_log.error(f"Word service timed out for {file.filename}")
+            logger.error(f"Word service timed out for {file.filename}")
             raise HTTPException(504, "Word service timed out.")
         except httpx.HTTPStatusError as e:
-            await remote_log.error(f"Word service error {e.response.status_code} for {file.filename}")
+            logger.error(f"Word service error {e.response.status_code} for {file.filename}")
             raise HTTPException(e.response.status_code, e.response.text)
         except Exception as e:
-            await remote_log.error(f"Word service unreachable: {e}")
+            logger.error(f"Word service unreachable: {e}")
             raise HTTPException(502, f"Word service unreachable: {e}")

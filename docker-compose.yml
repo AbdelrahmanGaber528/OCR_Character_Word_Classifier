@@ -10,11 +10,9 @@ services:
     depends_on:
       - character_service
       - word_service
-      - logger
     environment:
       - CHAR_URL=http://character_service:8001
       - WORD_URL=http://word_service:8002
-      - LOGGER_URL=http://logger:8003/log
     mem_limit: 200m
 
   character_service:
@@ -27,8 +25,6 @@ services:
       - ./model:/app/model
     environment:
       - MODEL_PATH=/app/model/ocr_model.pth
-    depends_on:
-      - logger
     mem_limit: 1GB
 
   word_service:
@@ -41,14 +37,4 @@ services:
       - ./model:/app/model
     environment:
       - MODEL_PATH=/app/model/ocr_model.pth
-    depends_on:
-      - logger
     mem_limit: 1GB
-
-  logger:
-    build:
-      context: .
-      dockerfile: logger/Dockerfile
-    ports:
-      - "8003:8003"
-    mem_limit: 100m

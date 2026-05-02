@@ -1,15 +1,16 @@
 # Distributed OCR System
 
-A microservices-based Optical Character Recognition (OCR) system that provides both single-character classification and full-word recognition. The system is designed with a Gateway pattern and a centralized logging service.
+A microservices-based Optical Character Recognition (OCR) system that provides both single-character classification and full-word recognition. The system is designed with a Gateway pattern.
 
 ## Architecture
 
-The project is split into four main services:
+The project is split into three main services:
 
 1.  **Gateway (Port 8000):** The entry point. Routes requests to the appropriate classification service and serves a simple web UI.
 2.  **Character Service (Port 8001):** Uses a custom MobileNetV2 (or OCR_CNN) model trained on handwritten/printed characters to predict single letters.
 3.  **Word Service (Port 8002):** Uses EasyOCR to perform text detection and recognition on full images/words.
-4.  **Logger Service (Port 8003):** A centralized logging hub that collects logs from all services and saves them to `app.log`.
+
+All services use standard Python logging, and logs are consolidated during execution.
 
 ## Tech Stack
 
@@ -35,7 +36,6 @@ The project is split into four main services:
     pip install -r gateway/requirements.txt
     pip install -r classifier/character-classifier/requirements.txt
     pip install -r classifier/word-classifier/requirements.txt
-    pip install -r logger/requirements.txt
     ```
 
 ## Running the Project
@@ -67,7 +67,6 @@ Each service provides interactive Swagger UI (OpenAPI) documentation for explori
 *   **Gateway:** [http://localhost:8000/docs](http://localhost:8000/docs)
 *   **Character Service:** [http://localhost:8001/docs](http://localhost:8001/docs)
 *   **Word Service:** [http://localhost:8002/docs](http://localhost:8002/docs)
-*   **Logger Service:** [http://localhost:8003/docs](http://localhost:8003/docs)
 
 ## API Usage
 
@@ -79,7 +78,6 @@ Each service provides interactive Swagger UI (OpenAPI) documentation for explori
 ### Direct Service Access
 *   `GET http://localhost:8001/health`: Character Service health check.
 *   `GET http://localhost:8002/health`: Word Service health check.
-*   `GET http://localhost:8003/docs`: Interactive Swagger UI for the Logger.
 
 ## Testing
 
@@ -103,7 +101,6 @@ A comprehensive test suite is included to verify the system's integrity.
 │   ├── word-classifier/       # EasyOCR service
 │   └── shared/                # Shared logic (preprocessing, model loading)
 ├── gateway/                   # API Gateway & Web UI
-├── logger/                    # Centralized logging service
 ├── model/                     # Trained .pth model files
 ├── tested_photos/             # Sample images for testing
 ├── docker-compose.yml         # Container orchestration

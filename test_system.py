@@ -7,15 +7,13 @@ import time
 GATEWAY_URL = "http://localhost:8000"
 CHAR_URL    = "http://localhost:8001"
 WORD_URL    = "http://localhost:8002"
-LOGGER_URL  = "http://localhost:8003"
 
 TEST_IMAGE_CHAR = "tested_photos/gray_letter_A.jpeg"
 TEST_IMAGE_WORD = "tested_photos/mazen_word.jpeg"
 
 def check_health():
-    print("[1/3] Checking Service Health...")
+    print("[1/2] Checking Service Health...")
     services = {
-        "Logger": f"{LOGGER_URL}/health",
         "Character": f"{CHAR_URL}/health",
         "Word": f"{WORD_URL}/health",
         "Gateway": f"{GATEWAY_URL}/health"
@@ -36,7 +34,7 @@ def check_health():
     return all_ok
 
 def test_predictions():
-    print("\n[2/3] Testing OCR Predictions via Gateway...")
+    print("\n[2/2] Testing OCR Predictions via Gateway...")
     
     # Test Character Prediction
     if os.path.exists(TEST_IMAGE_CHAR):
@@ -66,25 +64,10 @@ def test_predictions():
     else:
         print(f"SKIP: Word test: {TEST_IMAGE_WORD} not found.")
 
-def check_logger():
-    print("\n[3/3] Verifying Central Logger...")
-    # Send a manual log
-    payload = {"service": "test-script", "level": "INFO", "message": "Verification test"}
-    try:
-        resp = httpx.post(f"{LOGGER_URL}/log", json=payload)
-        if resp.status_code == 200:
-            print("OK: Logger accepted test message")
-            print("INFO: Check 'app.log' or the Logger terminal to see if it appeared.")
-        else:
-            print(f"FAIL: Logger rejected message: {resp.status_code}")
-    except Exception as e:
-        print(f"FAIL: Could not connect to Logger: {e}")
-
 if __name__ == "__main__":
     print("Starting OCR System Verification Test\n")
     if check_health():
         test_predictions()
-        check_logger()
         print("\nAll tests completed.")
     else:
         print("\nTests aborted: Not all services are running.")

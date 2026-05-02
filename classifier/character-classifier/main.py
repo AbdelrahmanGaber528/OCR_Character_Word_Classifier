@@ -9,13 +9,12 @@ from pydantic import BaseModel
 
 from shared.model_loader import load_model
 from shared.preprocessing import preprocess_image
-from shared.remote_logger import RemoteLogger
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/app/model/ocr_model.pth")
 DEVICE     = os.getenv("DEVICE", "cpu")
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s | character | %(message)s")
-remote_log = RemoteLogger("character-service")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger("character-service")
 
 
 
@@ -25,10 +24,10 @@ ml: dict = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI): # this function is used instead of startup() and shutdown events to load the model once when the app starts . version in fastapi
-    await remote_log.info(f"Loading model from {MODEL_PATH} ...")
+    logger.info(f"Loading model from {MODEL_PATH} ...")
     model, class_names, model_name = load_model(MODEL_PATH, device=DEVICE)
     ml.update(model=model, class_names=class_names, model_name=model_name)
-    await remote_log.info(f"Ready — {model_name} | {len(class_names)} classes | {DEVICE}")
+    logger.info(f"Ready — {model_name} | {len(class_names)} classes | {DEVICE}")
     yield
     ml.clear()
 
@@ -105,8 +104,8 @@ async def predict_character(file: UploadFile = File(...)):
 
     try:
         res = _run(data, k=3)
-        await remote_log.info(f"Predicted character: {res.predicted_letter} (conf: {res.confidence})")
+        logger.info(f"Predicted character: {res.predicted_letter} (conf: {res.confidence})")
         return res
     except Exception as e:
-        await remote_log.error(f"Inference error: {e}")
+        logger.error(f"Inference error: {e}")
         raise HTTPException(500, str(e))
