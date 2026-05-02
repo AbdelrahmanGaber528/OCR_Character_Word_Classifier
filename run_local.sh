@@ -28,6 +28,8 @@ echo "Starting OCR System locally using $UVICORN_BIN..."
 
 
 
+echo "Starting OCR System locally using $UVICORN_BIN..."
+
 # Function to kill processes on script exit
 cleanup() {
     echo ""
@@ -36,23 +38,21 @@ cleanup() {
     exit
 }
 
-
 # Trap CTRL+C to run cleanup
 trap cleanup SIGINT
 
 # 1. Start Logger (Port 8003)
-# 1. Start Logger (Port 8003)
-echo " [1/4] Starting Logger Service on port 8003..."
+echo "[1/4] Starting Logger Service on port 8003..."
 "$UVICORN_BIN" logger.main:app --host 0.0.0.0 --port 8003 > app.log 2>&1 &
 sleep 2
 
 # 2. Start Character Service (Port 8001)
-echo " [2/4] Starting Character Service on port 8001..."
+echo "[2/4] Starting Character Service on port 8001..."
 "$UVICORN_BIN" main:app --app-dir classifier/character-classifier --host 0.0.0.0 --port 8001 >> app.log 2>&1 &
 sleep 5 # Wait for model loading
 
 # 3. Start Word Service (Port 8002)
-echo " [3/4] Starting Word Service on port 8002..."
+echo "[3/4] Starting Word Service on port 8002..."
 "$UVICORN_BIN" main:app --app-dir classifier/word-classifier --host 0.0.0.0 --port 8002 >> app.log 2>&1 &
 sleep 5 # Wait for EasyOCR loading
 
@@ -68,6 +68,7 @@ echo "Logger URL:    http://localhost:8003"
 echo "All logs are being consolidated into: app.log"
 echo "Press CTRL+C to stop everything."
 echo "------------------------------------------------"
+
 
 
 # Keep the script running so we can capture CTRL+C
