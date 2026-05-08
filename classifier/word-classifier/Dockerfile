@@ -11,6 +11,9 @@ WORKDIR /app
 COPY classifier/word-classifier/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download EasyOCR models (English) during build
+RUN python -c "import easyocr; easyocr.Reader(['en'])"
+
 COPY classifier/shared/          ./shared/
 COPY classifier/word-classifier/ ./word_service/
 

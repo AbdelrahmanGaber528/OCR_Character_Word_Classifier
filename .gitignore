@@ -2,3 +2,4 @@
 tested_photos/
 *.log
 __pycache__/
+.python-version

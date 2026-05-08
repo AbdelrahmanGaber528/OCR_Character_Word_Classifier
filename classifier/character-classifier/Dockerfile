@@ -11,6 +11,9 @@ WORKDIR /app
 COPY classifier/character-classifier/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy model files into the image
+COPY model/ /app/model/
+
 COPY classifier/shared/                ./shared/
 COPY classifier/character-classifier/  ./character_service/
 

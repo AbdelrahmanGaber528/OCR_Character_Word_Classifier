@@ -92,7 +92,6 @@ def health():
 
 
 
-
 @app.post("/predict-character", response_model=CharResponse)
 async def predict_character(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
