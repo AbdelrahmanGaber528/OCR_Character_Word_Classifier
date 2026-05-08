@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 
 DEVICE     = os.getenv("DEVICE", "cpu")
-USE_GPU    = DEVICE == "cpu"
+USE_GPU    = DEVICE != "cpu"
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
 logger     = logging.getLogger("word-service")

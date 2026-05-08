@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./gateway/static:/app/static
+      - ./gateway/static:/app/gateway/static
     depends_on:
       - character_service
       - word_service
