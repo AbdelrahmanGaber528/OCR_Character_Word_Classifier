@@ -1,0 +1,98 @@
+# COMPLETE AWS DEPLOYMENT BLUEPRINT: OCR MICROSERVICES
+# This document contains the sequential steps and commands to deploy your architecture.
+# Replace <REGION>, <AWS_ACCOUNT_ID>, <VPC_ID>, <SUBNET_A>, <SUBNET_B> as needed.
+
+
+ANAS id : 470895881101
+ANAS REGION : eu-north-1
+# ==========================================
+# PHASE 1: CONTAINER REGISTRY (ECR)
+# ==========================================
+# 1. Create Repositories
+aws ecr create-repository --repository-name ocr-gateway --region eu-north-1
+aws ecr create-repository --repository-name ocr-character-service --region eu-north-1
+aws ecr create-repository --repository-name ocr-word-service --region eu-north-1
+
+# 2. Authenticate and Push (Run from project root)
+aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 470895881101.dkr.ecr.eu-north-1.amazonaws.com
+
+docker build -t ocr-gateway -f gateway/Dockerfile .
+docker tag ocr-gateway:latest 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
+docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
+
+docker build -t ocr-character-service -f classifier/character-classifier/Dockerfile .
+docker tag ocr-character-service:latest 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-character-service:latest
+docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-character-service:latest
+
+docker build -t ocr-word-service -f classifier/word-classifier/Dockerfile .
+docker tag ocr-word-service:latest 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-word-service:latest
+docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-word-service:latest
+
+
+# ==========================================
+# PHASE 2: NETWORKING & SECURITY
+# ==========================================
+# 1. Create Security Group for the Load Balancer (ALB)
+aws ec2 create-security-group --group-name ocr-alb-sg --description "SG for OCR Load Balancer" --vpc-id <VPC_ID>
+# Allow Port 80 (HTTP) to ALB
+aws ec2 authorize-security-group-ingress --group-name ocr-alb-sg --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+# 2. Create Security Group for ECS Tasks
+aws ec2 create-security-group --group-name ocr-tasks-sg --description "SG for OCR ECS Tasks" --vpc-id <VPC_ID>
+# Allow internal traffic from ALB to Gateway (Port 8000)
+aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8000 --source-group <ALB_SG_ID>
+# Allow internal traffic between containers (Ports 8001, 8002)
+aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8001 --source-group <TASKS_SG_ID>
+aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8002 --source-group <TASKS_SG_ID>
+
+
+# ==========================================
+# PHASE 3: LOAD BALANCER (ALB)
+# ==========================================
+# 1. Create the ALB
+aws elbv2 create-load-balancer --name ocr-alb --subnets <SUBNET_A> <SUBNET_B> --security-groups <ALB_SG_ID>
+
+# 2. Create Target Group for Gateway
+aws elbv2 create-target-group --name ocr-gateway-tg --protocol HTTP --port 8000 --vpc-id <VPC_ID> --target-type ip
+
+# 3. Create Listener
+aws elbv2 create-listener --load-balancer-arn <ALB_ARN> --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=<TG_ARN>
+
+
+# ==========================================
+# PHASE 4: ECS CLUSTER & SERVICE DISCOVERY
+# ==========================================
+# 1. Create Cluster
+aws ecs create-cluster --cluster-name ocr-cluster
+
+# 2. Create Service Discovery Namespace (for internal communication)
+aws servicediscovery create-private-dns-namespace --name ocr.local --vpc <VPC_ID>
+
+
+# ==========================================
+# PHASE 5: TASK DEFINITIONS & DEPLOYMENT
+# ==========================================
+# Note: Task Definitions are usually JSON files. 
+# You will create 3 Task Definitions (Gateway, Character, Word).
+
+# 1. Register Task Definitions (Simplified Example)
+# aws ecs register-task-definition --cli-input-json file://gateway-task.json
+# aws ecs register-task-definition --cli-input-json file://character-task.json
+# aws ecs register-task-definition --cli-input-json file://word-task.json
+
+# 2. Create Services
+# Deploy Backend Services first
+aws ecs create-service --cluster ocr-cluster --service-name character-service --task-definition ocr-character-service --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_A>],securityGroups=[<TASKS_SG_ID>]}"
+
+aws ecs create-service --cluster ocr-cluster --service-name word-service --task-definition ocr-word-service --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_A>],securityGroups=[<TASKS_SG_ID>]}"
+
+# Deploy Gateway last (connected to ALB)
+aws ecs create-service --cluster ocr-cluster --service-name gateway-service --task-definition ocr-gateway --desired-count 1 --launch-type FARGATE --load-balancers "targetGroupArn=<TG_ARN>,containerName=gateway,containerPort=8000" --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_A>],securityGroups=[<TASKS_SG_ID>]}"
+
+
+# ==========================================
+# PHASE 6: VALIDATION
+# ==========================================
+# 1. Get ALB DNS Name
+aws elbv2 describe-load-balancers --names ocr-alb --query 'LoadBalancers[0].DNSName'
+# 2. Open the DNS name in your browser.

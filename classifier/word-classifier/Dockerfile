@@ -1,6 +1,7 @@
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV EASYOCR_MODULE_PATH=/app/.EasyOCR
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libjpeg-dev libpng-dev libglib2.0-0 libgl1 \
