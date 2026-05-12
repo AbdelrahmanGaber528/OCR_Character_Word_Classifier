@@ -422,10 +422,10 @@ Step 3: Create the Gateway Service (The Frontend)
 # Make sure check the **variables** in gateway task to match the code : 
 
 * Key : CHARACTER_SERVICE_URL : 
-* Value :http://character-service.ocr.local:8001
+* Value :
 
 * Key: WORD_SERVICE_URL
-* Value : http://word-service.ocr.local:8002
+* Value : 
 
 
 # Phase 5: Cloud Storage Integration (S3 & RDS)
@@ -449,25 +449,16 @@ The `web-app-docker-admin` user and the ECS Task Role need access to S3 and RDS.
 
 ### Create S3 Bucket (For Image Storage)
 ```bash
-aws s3 mb s3://ocr-storage-anas-470895881101 --region eu-north-1
+aws s3 mb s3:/--region 
 ```
 
 ### Create RDS PostgreSQL Instance (For Prediction Metadata)
-```bash
-aws rds create-db-instance \
-    --db-instance-identifier ocr-db \
-    --db-instance-class db.t3.micro \
-    --engine postgres \
-    --master-username ocr_admin \
-    --master-user-password "Ocr_Void_#123" \
-    --allocated-storage 20 \
-    --region eu-north-1
-```
+
 
 ## 3. Database & Network Security
 To allow the Gateway to talk to the database:
 1. Go to **RDS Console** -> **ocr-db** -> **Connectivity & security**.
-2. Click the **VPC security group** (e.g., `sg-0c26d236d8f3bf356`).
+2. Click the **VPC security group** 
 3. Add an **Inbound Rule**:
    - **Type**: PostgreSQL (Port 5432)
    - **Source**: `ocr-tasks-sg` (This allows internal traffic from the Gateway container).
@@ -479,8 +470,8 @@ Updated the Gateway service to use `boto3` (S3) and `SQLAlchemy` (RDS).
 ```bash
 aws ecr get-login-password --region eu-north-1 | doas docker login --username AWS --password-stdin 470895881101.dkr.ecr.eu-north-1.amazonaws.com
 docker build --platform linux/amd64 -t ocr-gateway -f gateway/Dockerfile .
-docker tag ocr-gateway:latest 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
-doas docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
+docker tag ocr-gateway:latest 4amazonaws.com/ocr-gateway:latest
+doas docker push .amazonaws.com/ocr-gateway:latest
 ```
 
 ## 5. ECS Task Definition Revision
@@ -488,8 +479,8 @@ Created a new revision of `ocr-gateway-task` with these critical settings:
 
 - **Task Role**: `ocr-task-role` (Gives the code permission to upload to S3).
 - **Environment Variables**:
-  - `S3_BUCKET_NAME`: `ocr-storage-anas-470895881101`
-  - `DATABASE_URL`: `postgresql://ocr_admin:Ocr_Void_#123@ocr-db.chi4cw8osd0x.eu-north-1.rds.amazonaws.com:5432/postgres`
+  - `S3_BUCKET_NAME`: 
+  - `DATABASE_URL`: 
 
 ## 7. Data Verification (Last-Mile Audit)
 
@@ -497,15 +488,14 @@ To verify that the cloud storage is working correctly, use these commands from y
 
 ### Verify Images in S3
 ```bash
-aws s3 ls s3://ocr-storage-anas-470895881101/uploads/
+aws s3 ls s3://
 ```
 
 ### Verify Predictions in RDS (PostgreSQL)
 Connect to the database using `psql`:
 ```bash
-psql "host=ocr-db.chi4cw8osd0x.eu-north-1.rds.amazonaws.com port=5432 dbname=postgres user=ocr_admin"
+psql 
 ```
-*Password: `Ocr_Void_#123`*
 
 Run the query:
 ```sql
