@@ -92,6 +92,81 @@ A comprehensive test suite is included to verify the system's integrity.
     ./test_all.sh
     ```
 
+## AWS Cloud Integration (Images & Predictions)
+
+The system is deployed on AWS and integrated with cloud storage for persistence.
+
+### Architecture
+- **Amazon S3**: Stores the actual image files uploaded by users.
+- **Amazon RDS (PostgreSQL)**: Stores prediction metadata (text, confidence, timestamp, and S3 reference).
+
+### Infrastructure Setup
+1. **S3 Bucket Creation**:
+   ```bash
+   aws s3 mb s3://ocr-storage-anas-470895881101 --region eu-north-1
+   ```
+
+2. **RDS Database Creation**:
+   ```bash
+   aws rds create-db-instance \
+       --db-instance-identifier ocr-db \
+       --db-instance-class db.t3.micro \
+       --engine postgres \
+       --master-username ocr_admin \
+       --master-user-password "Ocr_Void_#123" \
+       --allocated-storage 20 \
+       --region eu-north-1
+   ```
+
+3. **Database Schema**:
+   The `predictions` table is automatically created by the Gateway service on startup:
+   - `id`: Primary Key
+   - `filename`: Original name of the file
+   - `s3_key`: Path to the image in S3
+   - `prediction`: The OCR result
+   - `confidence`: Model confidence score
+   - `model_type`: 'character' or 'word'
+   - `timestamp`: UTC processing time
+
+### Deployment Steps
+1. **Docker Build & Push**:
+   ```bash
+   aws ecr get-login-password --region eu-north-1 | doas docker login --username AWS --password-stdin 470895881101.dkr.ecr.eu-north-1.amazonaws.com
+   docker build --platform linux/amd64 -t ocr-gateway -f gateway/Dockerfile .
+   docker tag ocr-gateway:latest 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
+   doas docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-gateway:latest
+   ```
+
+2. **ECS Configuration**:
+   The Gateway requires the following Environment Variables in the Task Definition:
+   - `S3_BUCKET_NAME`: `ocr-storage-anas-470895881101`
+   - `DATABASE_URL`: `postgresql://ocr_admin:Ocr_Void_#123@<RDS_ENDPOINT>:5432/postgres`
+
+3. **Service Refresh**:
+   ```bash
+   aws ecs update-service --cluster ocr-cluster --service gateway-service --force-new-deployment
+   ```
+
+### Data Verification
+From your local terminal, you can verify the stored data:
+
+**Check Images (S3):**
+```bash
+aws s3 ls s3://ocr-storage-anas-470895881101/uploads/
+```
+
+**Check Records (RDS):**
+```bash
+psql "host=ocr-db.chi4cw8osd0x.eu-north-1.rds.amazonaws.com port=5432 dbname=postgres user=ocr_admin"
+# Run: SELECT * FROM predictions;
+```
+
+### Monitoring (CloudWatch)
+The system is monitored using **Amazon CloudWatch**:
+- **Centralized Logs**: View logs for Gateway, Character, and Word services in CloudWatch Log Groups.
+- **Container Insights**: Real-time CPU and Memory tracking for the ECS Cluster.
+- **Alarms**: Health check monitoring for service availability.
+
 ## Project Structure
 
 ```text
@@ -110,3 +185,78 @@ A comprehensive test suite is included to verify the system's integrity.
 ## License
 
 This project is for educational purposes as part of an Advanced Machine Learning curriculum.
+
+
+
+
+---
+i want to fill the following : , can you help me PROJECT DISCUSSION – DETAILED SHEET
+Course	Semester	Team ID	Discussion Time	TA	Final Grade
+Cloud Computing / Integrated Projects	Spring 2026				
+1. Project and Team Snapshot
+Project Identity
+Project No.	
+Project Title		Team Type	☐ CS ☐ AI ☐ Mixed
+Idea Source	☐ Bank ☐ Custom ☐ Hybrid	Related Courses	
+Project Bank Ref.		One-line Summary	
+
+
+
+Contacts / Links
+Team Leader Email	
+GitHub Link	
+Demo / Deployment Link	
+	
+	Project Snapshot
+Problem being solved	
+Target users	
+Minimum viable scope	
+	Bonus / Enrichment
+
+
+
+
+
+
+
+
+	2. Team Details
+#	Student Name	Student ID	Main Role / Contribution	Attendance
+1				☐ P ☐ A
+2				☐ P ☐ A
+3				☐ P ☐ A
+4				☐ P ☐ A
+5				☐ P ☐ A
+6				☐ P ☐ A
+7				☐ P ☐ A
+8				☐ P ☐ A
+
+Interpretation note: For CS teams, cloud depth is expected mainly in deployment, containers, storage, security, monitoring, and scalability. For AI teams, it is expected mainly in hosting inference/experiments, data/result storage, deployment, monitoring, and cost feasibility. For mixed teams, the product and AI layers should be integrated and operated meaningfully in the cloud.
+
+3. Evaluation, Cloud Review, and Decision
+A. General Project Evaluation
+Criterion / focus	What to check	Score (0–4)	Notes
+Problem clarity	Is the problem clear and meaningful?		
+Scope realism	Can the team finish it realistically?		
+Course alignment	Does it fit the claimed courses naturally?		
+Technical depth	Is there enough substance for this team type?		
+Evaluation / testing readiness	Are metrics, experiments, or tests defined?		
+Discussion performance	Did the team explain and defend the idea well?		
+Total General Score / 24			
+Scoring scale for both sections: 0 = Not demonstrated, 1 = Weak, 2 = Basic, 3 = Good, 4 = Strong
+B. Cloud Computing Evaluation
+Cloud criterion	What to check	Student Response	Score (0–4)	Notes
+Architecture relevance	Is the cloud design meaningful for the project?			
+Service selection	Are chosen cloud services appropriate and justified?		
+	
+Deployment / containers	Is there a clear deployment and packaging approach?		
+	
+Networking / security	Is exposure and protection in the cloud understood?		
+	
+Storage / data handling	Are storage and data choices sensible?		
+	
+Scalability / reliability	Has the team considered scale and availability?		
+	
+Monitoring / observability	Is there a credible logging / monitoring plan?			
+Cost awareness	Is there awareness of cost and free-tier feasibility?			
+Total Cloud Score / 32				

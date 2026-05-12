@@ -5,8 +5,9 @@
 
 ANAS id : 470895881101
 ANAS REGION : eu-north-1
+
 # ==========================================
-# PHASE 1: CONTAINER REGISTRY (ECR)
+# PHASE 1: CONTAINER REGISTRY (ECR) : repository
 # ==========================================
 # 1. Create Repositories
 aws ecr create-repository --repository-name ocr-gateway --region eu-north-1
@@ -32,15 +33,19 @@ docker push 470895881101.dkr.ecr.eu-north-1.amazonaws.com/ocr-word-service:lates
 # ==========================================
 # PHASE 2: NETWORKING & SECURITY
 # ==========================================
+
 # 1. Create Security Group for the Load Balancer (ALB)
 aws ec2 create-security-group --group-name ocr-alb-sg --description "SG for OCR Load Balancer" --vpc-id <VPC_ID>
+
 # Allow Port 80 (HTTP) to ALB
 aws ec2 authorize-security-group-ingress --group-name ocr-alb-sg --protocol tcp --port 80 --cidr 0.0.0.0/0
 
 # 2. Create Security Group for ECS Tasks
 aws ec2 create-security-group --group-name ocr-tasks-sg --description "SG for OCR ECS Tasks" --vpc-id <VPC_ID>
+
 # Allow internal traffic from ALB to Gateway (Port 8000)
 aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8000 --source-group <ALB_SG_ID>
+
 # Allow internal traffic between containers (Ports 8001, 8002)
 aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8001 --source-group <TASKS_SG_ID>
 aws ec2 authorize-security-group-ingress --group-name ocr-tasks-sg --protocol tcp --port 8002 --source-group <TASKS_SG_ID>
@@ -72,6 +77,7 @@ aws servicediscovery create-private-dns-namespace --name ocr.local --vpc <VPC_ID
 # ==========================================
 # PHASE 5: TASK DEFINITIONS & DEPLOYMENT
 # ==========================================
+
 # Note: Task Definitions are usually JSON files. 
 # You will create 3 Task Definitions (Gateway, Character, Word).
 
@@ -88,6 +94,8 @@ aws ecs create-service --cluster ocr-cluster --service-name word-service --task-
 
 # Deploy Gateway last (connected to ALB)
 aws ecs create-service --cluster ocr-cluster --service-name gateway-service --task-definition ocr-gateway --desired-count 1 --launch-type FARGATE --load-balancers "targetGroupArn=<TG_ARN>,containerName=gateway,containerPort=8000" --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_A>],securityGroups=[<TASKS_SG_ID>]}"
+
+
 
 
 # ==========================================

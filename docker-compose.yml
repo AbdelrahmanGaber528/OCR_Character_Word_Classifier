@@ -13,6 +13,8 @@ services:
     environment:
       - CHAR_URL=http://character_service:8001
       - WORD_URL=http://word_service:8002
+      - S3_BUCKET=ocr-storage-anas-470895881101
+      - DATABASE_URL=postgresql://ocr_admin:Ocr_Void_#123@ocr-db.chi4cw8osd0x.eu-north-1.rds.amazonaws.com:5432/postgres
     mem_limit: 200m
 
   character_service:

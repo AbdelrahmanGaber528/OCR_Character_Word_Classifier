@@ -1,21 +1,91 @@
 import os
 import logging
-from fastapi import FastAPI, Request, File, UploadFile, HTTPException
+from datetime import datetime
+from fastapi import FastAPI, Request, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
+import boto3
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
 logger = logging.getLogger("gateway")
 
 CHAR_URL = os.getenv("CHAR_URL", "http://character_service:8001")
 WORD_URL = os.getenv("WORD_URL", "http://word_service:8002")
+S3_BUCKET = os.getenv("S3_BUCKET_NAME")
+DATABASE_URL = os.getenv("DATABASE_URL")
 TIMEOUT  = 30.0
+
+# ── DATABASE SETUP ────────────────────────────────────────────────────────
+Base = declarative_base()
+
+class PredictionRecord(Base):
+    __tablename__ = "predictions"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String)
+    s3_key = Column(String)
+    prediction = Column(String)
+    confidence = Column(Float)
+    model_type = Column(String)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+engine = None
+SessionLocal = None
+if DATABASE_URL:
+    try:
+        engine = create_engine(DATABASE_URL)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+
+
+
+# ── S3 SETUP ─────────────────────────────────────────────────────────────
+s3_client = None
+if S3_BUCKET:
+    try:
+        s3_client = boto3.client('s3')
+        logger.info(f"S3 client initialized for bucket: {S3_BUCKET}")
+    except Exception as e:
+        logger.error(f"S3 initialization failed: {e}")
+
+def save_to_cloud_task(filename: str, data: bytes, prediction: str, confidence: float, model_type: str):
+    """Background task to persist data to S3 and RDS."""
+    try:
+        s3_key = None
+        if s3_client and S3_BUCKET:
+            s3_key = f"uploads/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+            s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=data)
+            logger.info(f"Uploaded {filename} to S3.")
+
+        if SessionLocal:
+            db = SessionLocal()
+            record = PredictionRecord(
+                filename=filename,
+                s3_key=s3_key,
+                prediction=prediction,
+                confidence=confidence,
+                model_type=model_type
+            )
+            db.add(record)
+            db.commit()
+            db.close()
+            logger.info(f"Saved prediction for {filename} to RDS.")
+    except Exception as e:
+        logger.error(f"Failed to save to cloud: {e}")
+
 
 app = FastAPI(title="OCR Gateway")
 app.mount("/static", StaticFiles(directory="gateway/static"), name="static")
 templates = Jinja2Templates(directory="gateway/templates")
+
+
 
 
 # ── UI ────────────────────────────────────────────────────────────────────
@@ -41,7 +111,7 @@ async def health():
 
 
 @app.post("/predict/character")
-async def predict_character(file: UploadFile = File(...)):
+async def predict_character(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Must be an image file.")
 
@@ -55,17 +125,18 @@ async def predict_character(file: UploadFile = File(...)):
             )
             resp.raise_for_status()
             res = resp.json()
+            
+            # Save to cloud in background
+            background_tasks.add_task(
+                save_to_cloud_task, 
+                file.filename, data, res['predicted_letter'], res['confidence'], 'character'
+            )
+
             logger.info(f"Character prediction success for {file.filename}")
             return res
-        except httpx.TimeoutException:
-            logger.error(f"Character service timed out for {file.filename}")
-            raise HTTPException(504, "Character service timed out.")
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Character service error {e.response.status_code} for {file.filename}")
-            raise HTTPException(e.response.status_code, e.response.text)
         except Exception as e:
-            logger.error(f"Character service unreachable: {e}")
-            raise HTTPException(502, f"Character service unreachable: {e}")
+            logger.error(f"Character service error: {e}")
+            raise HTTPException(502, f"Service error: {e}")
 
 
 
@@ -73,7 +144,7 @@ async def predict_character(file: UploadFile = File(...)):
 
 
 @app.post("/predict/word")
-async def predict_word(file: UploadFile = File(...)):
+async def predict_word(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Must be an image file.")
 
@@ -87,14 +158,15 @@ async def predict_word(file: UploadFile = File(...)):
             )
             resp.raise_for_status()
             res = resp.json()
+
+            # Save to cloud in background
+            background_tasks.add_task(
+                save_to_cloud_task, 
+                file.filename, data, res['predicted_word'], res['avg_confidence'], 'word'
+            )
+
             logger.info(f"Word prediction success for {file.filename}")
             return res
-        except httpx.TimeoutException:
-            logger.error(f"Word service timed out for {file.filename}")
-            raise HTTPException(504, "Word service timed out.")
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Word service error {e.response.status_code} for {file.filename}")
-            raise HTTPException(e.response.status_code, e.response.text)
         except Exception as e:
-            logger.error(f"Word service unreachable: {e}")
-            raise HTTPException(502, f"Word service unreachable: {e}")
+            logger.error(f"Word service error: {e}")
+            raise HTTPException(502, f"Service error: {e}")
